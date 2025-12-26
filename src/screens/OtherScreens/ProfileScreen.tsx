@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/core';
 import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground, Animated, Dimensions } from 'react-native';
 
@@ -8,6 +9,7 @@ const ProfileScreen = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(width)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   // Mock data for posts
   const posts = Array(12).fill(null).map((_, i) => i + 1);
@@ -60,7 +62,7 @@ const ProfileScreen = () => {
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('UploadPost')}>
             <Text style={styles.icon}>➕</Text>
           </TouchableOpacity>
           <Text style={styles.username}>username</Text>
@@ -146,22 +148,28 @@ const ProfileScreen = () => {
         {/* Tabs */}
         <View style={styles.tabs}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'grid' && styles.tabActive]}
-            onPress={() => setActiveTab('grid')}
+            style={[styles.tab, activeTab === 'public' && styles.tabActive]}
+            onPress={() => setActiveTab('public')}
           >
-            <Text style={[styles.tabIcon, activeTab === 'grid' && styles.tabIconActive]}>▦</Text>
+            <Text style={[styles.tabIcon, activeTab === 'public' && styles.tabIconActive]}>Public Posts</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'reels' && styles.tabActive]}
-            onPress={() => setActiveTab('reels')}
+            style={[styles.tab, activeTab === 'private' && styles.tabActive]}
+            onPress={() => setActiveTab('private')}
           >
-            <Text style={[styles.tabIcon, activeTab === 'reels' && styles.tabIconActive]}>▶</Text>
+            <Text style={[styles.tabIcon, activeTab === 'private' && styles.tabIconActive]}>Private Posts</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'strange' && styles.tabActive]}
+            onPress={() => setActiveTab('strange')}
+          >
+            <Text style={[styles.tabIcon, activeTab === 'strange' && styles.tabIconActive]}>Strange Posts</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'tagged' && styles.tabActive]}
             onPress={() => setActiveTab('tagged')}
           >
-            <Text style={[styles.tabIcon, activeTab === 'tagged' && styles.tabIconActive]}>👤</Text>
+            <Text style={[styles.tabIcon, activeTab === 'tagged' && styles.tabIconActive]}>Tagged</Text>
           </TouchableOpacity>
         </View>
 
@@ -445,7 +453,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#262626',
   },
   tabIcon: {
-    fontSize: 24,
+    fontSize: 14,
     color: '#8e8e8e',
   },
   tabIconActive: {
