@@ -1,5 +1,5 @@
 // ==================== UploadPostScreen.js ====================
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -14,27 +14,6 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const UploadPostScreen = ({ navigation }) => {
-  // 1. Hooks
-  const [title, setTitle] = useState('');
-  
-  // CHANGED: Instead of a single string, we use an Array of Text Blocks
-  // Each block has its own text, color, and font settings.
-  const [textBlocks, setTextBlocks] = useState([
-    { id: '1', text: '', color: '#262626', font: { name: 'Default', family: undefined, style: 'normal', weight: 'normal' } }
-  ]);
-  const [activeBlockId, setActiveBlockId] = useState('1');
-
-  const [tags, setTags] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState([]);
-  const [selectedBackground, setSelectedBackground] = useState(null);
-  const [selectedSticker, setSelectedSticker] = useState(null);
-  
-  // Modals State
-  const [showStickerModal, setShowStickerModal] = useState(false);
-  const [showBackgroundModal, setShowBackgroundModal] = useState(false);
-  const [showFontModal, setShowFontModal] = useState(false);
-  const [showColorModal, setShowColorModal] = useState(false);
-
   // --- Data Arrays ---
   const stickers = [
     '😀', '😂', '🥰', '😎', '🤩', '🥳', '😍', '🔥',
@@ -69,14 +48,41 @@ const UploadPostScreen = ({ navigation }) => {
     { id: 10, name: 'Gradient Orange', type: 'color', color: '#fa709a' },
   ];
 
+  // 1. Hooks
+  const [title, setTitle] = useState('');
+  
+  // NEW: Title Styling State
+  const [titleColor, setTitleColor] = useState('#262626');
+  const [titleFont, setTitleFont] = useState(fontOptions[0]);
+
+  // Body Text Blocks
+  const [textBlocks, setTextBlocks] = useState([
+    { id: '1', text: '', color: '#262626', font: fontOptions[0] }
+  ]);
+  const [activeBlockId, setActiveBlockId] = useState('1');
+
+  // Helper to know which section opened the modal ('title' or 'body')
+  const [activeEditor, setActiveEditor] = useState('body'); 
+
+  const [tags, setTags] = useState('');
+  const [selectedMedia, setSelectedMedia] = useState([]);
+  const [selectedBackground, setSelectedBackground] = useState(null);
+  const [selectedSticker, setSelectedSticker] = useState(null);
+  
+  // Modals State
+  const [showStickerModal, setShowStickerModal] = useState(false);
+  const [showBackgroundModal, setShowBackgroundModal] = useState(false);
+  const [showFontModal, setShowFontModal] = useState(false);
+  const [showColorModal, setShowColorModal] = useState(false);
+
   // --- Helpers for Text Blocks ---
 
   const addTextBlock = () => {
     const newBlock = {
       id: Date.now().toString(),
       text: '',
-      color: '#262626', // Default color
-      font: fontOptions[0] // Default font
+      color: '#262626',
+      font: fontOptions[0]
     };
     setTextBlocks([...textBlocks, newBlock]);
     setActiveBlockId(newBlock.id);
@@ -90,7 +96,6 @@ const UploadPostScreen = ({ navigation }) => {
   };
 
   const updateActiveBlockStyle = (type, value) => {
-    // type can be 'color' or 'font'
     const updatedBlocks = textBlocks.map(block => 
       block.id === activeBlockId ? { ...block, [type]: value } : block
     );
@@ -121,7 +126,6 @@ const UploadPostScreen = ({ navigation }) => {
   };
 
   const handlePreview = () => {
-    // Basic validation: Check if title exists OR if at least one text block has text OR media exists
     const hasText = textBlocks.some(b => b.text.trim().length > 0);
     
     if (!title && !hasText && !selectedMedia.length) {
@@ -132,13 +136,39 @@ const UploadPostScreen = ({ navigation }) => {
     navigation.navigate('PreviewPost', {
       postData: {
         title,
-        textBlocks, // Passing array of blocks instead of single string
+        titleStyle: { // Pass title style to preview
+            color: titleColor,
+            fontFamily: titleFont.family,
+            fontStyle: titleFont.style,
+            fontWeight: titleFont.weight,
+        },
+        textBlocks,
         tags,
         selectedMedia,
         selectedBackground,
         selectedSticker,
       }
     });
+  };
+
+  // Helper to handle font selection based on active editor
+  const handleFontSelect = (fontItem) => {
+    if (activeEditor === 'title') {
+        setTitleFont(fontItem);
+    } else {
+        updateActiveBlockStyle('font', fontItem);
+    }
+    setShowFontModal(false);
+  };
+
+  // Helper to handle color selection based on active editor
+  const handleColorSelect = (colorItem) => {
+    if (activeEditor === 'title') {
+        setTitleColor(colorItem);
+    } else {
+        updateActiveBlockStyle('color', colorItem);
+    }
+    setShowColorModal(false);
   };
 
   return (
@@ -155,11 +185,41 @@ const UploadPostScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Title Input */}
+        
+        {/* Title Input Section */}
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Title</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Title</Text>
+            {/* Title Styling Toolbar */}
+            <View style={styles.textToolbar}>
+                <TouchableOpacity 
+                    style={styles.toolButton} 
+                    onPress={() => { setActiveEditor('title'); setShowFontModal(true); }}
+                >
+                    <Text style={styles.toolIcon}>Aa</Text>
+                    <Text style={styles.toolLabel}>Font</Text>
+                </TouchableOpacity>
+                <View style={styles.verticalDivider} />
+                <TouchableOpacity 
+                    style={styles.toolButton} 
+                    onPress={() => { setActiveEditor('title'); setShowColorModal(true); }}
+                >
+                    <View style={[styles.colorPreviewDot, { backgroundColor: titleColor }]} />
+                    <Text style={styles.toolLabel}>Color</Text>
+                </TouchableOpacity>
+            </View>
+          </View>
+
           <TextInput
-            style={styles.titleInput}
+            style={[
+                styles.titleInput,
+                {
+                    color: titleColor,
+                    fontFamily: titleFont.family,
+                    fontWeight: titleFont.weight,
+                    fontStyle: titleFont.style,
+                }
+            ]}
             placeholder="Add a catchy title..."
             placeholderTextColor="#999"
             value={title}
@@ -172,14 +232,20 @@ const UploadPostScreen = ({ navigation }) => {
           <View style={styles.labelRow}>
             <Text style={styles.label}>Today's Mood</Text>
             
-            {/* Text Styling Toolbar - Applies to ACTIVE block */}
+            {/* Body Text Styling Toolbar */}
             <View style={styles.textToolbar}>
-                <TouchableOpacity style={styles.toolButton} onPress={() => setShowFontModal(true)}>
+                <TouchableOpacity 
+                    style={styles.toolButton} 
+                    onPress={() => { setActiveEditor('body'); setShowFontModal(true); }}
+                >
                     <Text style={styles.toolIcon}>Aa</Text>
                     <Text style={styles.toolLabel}>Font</Text>
                 </TouchableOpacity>
                 <View style={styles.verticalDivider} />
-                <TouchableOpacity style={styles.toolButton} onPress={() => setShowColorModal(true)}>
+                <TouchableOpacity 
+                    style={styles.toolButton} 
+                    onPress={() => { setActiveEditor('body'); setShowColorModal(true); }}
+                >
                     <View style={[styles.colorPreviewDot, { backgroundColor: getActiveBlock().color }]} />
                     <Text style={styles.toolLabel}>Color</Text>
                 </TouchableOpacity>
@@ -197,7 +263,6 @@ const UploadPostScreen = ({ navigation }) => {
                         fontFamily: block.font.family,
                         fontWeight: block.font.weight,
                         fontStyle: block.font.style,
-                        // Add some logic to mimic focus
                         borderColor: activeBlockId === block.id ? '#7c4dff' : 'transparent',
                         borderWidth: 1,
                     }
@@ -205,14 +270,13 @@ const UploadPostScreen = ({ navigation }) => {
                 placeholder={index === 0 ? "What's on your mind?" : "Continue writing..."}
                 placeholderTextColor="#ccc"
                 multiline
-                scrollEnabled={false} // Allow container to scroll instead
+                scrollEnabled={false}
                 value={block.text}
                 onChangeText={(text) => updateBlockText(block.id, text)}
-                onFocus={() => setActiveBlockId(block.id)}
+                onFocus={() => { setActiveEditor('body'); setActiveBlockId(block.id); }}
               />
             ))}
             
-            {/* Add New Block Button */}
             <TouchableOpacity style={styles.addBlockButton} onPress={addTextBlock}>
                 <Text style={styles.addBlockIcon}>＋</Text>
                 <Text style={styles.addBlockText}>Add New Text Section</Text>
@@ -328,7 +392,7 @@ const UploadPostScreen = ({ navigation }) => {
 
       {/* ================= MODALS ================= */}
 
-      {/* Font Modal - Updates ACTIVE block */}
+      {/* Font Modal */}
       <Modal visible={showFontModal} transparent={true} animationType="slide" onRequestClose={() => setShowFontModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -342,12 +406,16 @@ const UploadPostScreen = ({ navigation }) => {
                 renderItem={({item}) => (
                     <TouchableOpacity 
                         style={styles.fontOptionItem}
-                        onPress={() => { updateActiveBlockStyle('font', item); setShowFontModal(false); }}
+                        onPress={() => handleFontSelect(item)}
                     >
                         <Text style={[styles.fontOptionText, { fontFamily: item.family, fontStyle: item.style, fontWeight: item.weight }]}>
                             {item.name}
                         </Text>
-                        {getActiveBlock().font.name === item.name && <Text style={styles.checkMark}>✓</Text>}
+                        {/* Checkmark logic */}
+                        {activeEditor === 'title' 
+                            ? (titleFont.name === item.name && <Text style={styles.checkMark}>✓</Text>)
+                            : (getActiveBlock().font.name === item.name && <Text style={styles.checkMark}>✓</Text>)
+                        }
                     </TouchableOpacity>
                 )}
             />
@@ -355,7 +423,7 @@ const UploadPostScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Color Modal - Updates ACTIVE block */}
+      {/* Color Modal */}
       <Modal visible={showColorModal} transparent={true} animationType="slide" onRequestClose={() => setShowColorModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -367,8 +435,13 @@ const UploadPostScreen = ({ navigation }) => {
                 {colorOptions.map((color, index) => (
                     <TouchableOpacity 
                         key={index}
-                        style={[styles.colorOption, { backgroundColor: color }, getActiveBlock().color === color && styles.selectedColorOption]}
-                        onPress={() => { updateActiveBlockStyle('color', color); setShowColorModal(false); }}
+                        style={[
+                            styles.colorOption, 
+                            { backgroundColor: color }, 
+                            // Selected Border Logic
+                            (activeEditor === 'title' ? titleColor === color : getActiveBlock().color === color) && styles.selectedColorOption
+                        ]}
+                        onPress={() => handleColorSelect(color)}
                     />
                 ))}
             </View>
@@ -376,7 +449,7 @@ const UploadPostScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Sticker & Background Modals (Same as before) */}
+      {/* Sticker & Background Modals */}
       <Modal visible={showStickerModal} transparent={true} animationType="slide" onRequestClose={() => setShowStickerModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -443,7 +516,7 @@ const styles = StyleSheet.create({
 
   titleInput: { borderWidth: 1, borderColor: '#dbdbdb', borderRadius: 8, padding: 12, fontSize: 16, color: '#262626' },
   
-  // New Multi-Block Body Styles
+  // Multi-Block Body Styles
   bodyWrapper: {
     borderWidth: 1,
     borderColor: '#dbdbdb',

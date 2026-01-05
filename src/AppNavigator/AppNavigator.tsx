@@ -3,8 +3,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginAndRegScreen from '../LoginAndRegister/LoginAndRegScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import ProfileScreen from '../screens/OtherScreens/ProfileScreen';
-import UploadPostScreen from '../screens/OtherScreens/UploadPostScreen';
+import UploadPostScreen from '../screens/OtherScreens/CreatePostScreen';
 import PreviewPostScreen from '../screens/OtherScreens/PreviewPostScreen';
+import EditeProfileScreen from '../screens/OtherScreens/UserProfileScreens/EditeProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,11 @@ const AppNavigator = () => {
         name="PreviewPost"
         component={PreviewPostScreen}
         options={{ title: 'Preview Post' }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditeProfileScreen}
+        options={{ title: 'Edit Profile' }}
       />
     </Stack.Navigator>
   );

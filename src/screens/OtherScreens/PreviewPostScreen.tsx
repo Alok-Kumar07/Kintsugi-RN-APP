@@ -22,6 +22,8 @@ const PreviewPostScreen = ({ route, navigation }) => {
     const handlePost = () => {
         const finalPostData = {
             title: postData.title,
+            // Pass title styling to backend
+            titleStyle: postData.titleStyle, 
             // Reconstruct bodyText for backend as string or keep array
             bodyText: postData.textBlocks ? postData.textBlocks.map(b => b.text).join('\n') : '',
             textBlocks: postData.textBlocks,
@@ -139,8 +141,21 @@ const PreviewPostScreen = ({ route, navigation }) => {
 
                         {/* RIGHT SIDE: TITLE AND BODY (MULTI-BLOCK RENDER) */}
                         <View style={styles.textContentSide}>
+                            {/* UPDATED TITLE RENDERING WITH STYLES */}
                             {postData.title ? (
-                                <Text style={styles.postTitle}>{postData.title}</Text>
+                                <Text 
+                                    style={[
+                                        styles.postTitle,
+                                        postData.titleStyle && {
+                                            color: postData.titleStyle.color,
+                                            fontFamily: postData.titleStyle.fontFamily,
+                                            fontWeight: postData.titleStyle.fontWeight,
+                                            fontStyle: postData.titleStyle.fontStyle,
+                                        }
+                                    ]}
+                                >
+                                    {postData.title}
+                                </Text>
                             ) : null}
                             
                             {/* RENDER TEXT BLOCKS */}
